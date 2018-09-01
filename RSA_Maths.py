@@ -62,24 +62,3 @@ def totient(p, q, log = False):
     if log:
         print("phi({}*{}) = {}".format(p, q, t))
     return t
-
-# Find prime numbers >= start and < stop.
-def primes(stop, start = 2):
-    p = []
-    return p
-
-# Find prime factorisations of n using primes in list p.
-# i can be set to skip part of the list that has already been searched.
-def primeFactors(n, p, i=0, log = False):
-    if log:
-        print("Finding prime factors of {}...".format(n))
-    f = []
-    if len(p) >= 2:
-        while i < len(p):
-            for j in range(len(p)):
-                if p[i] * p[j] == n:
-                    f.append([p[i], p[j]])
-            i += 1
-    if log:
-        print("{} new factors found.".format(len(f)))
-    return f
