@@ -1,13 +1,14 @@
 # RSA encryption / decryption functions.
 
-import secrets, RSA_Maths
+import secrets, Primes, RSA_Maths
 
 # Pick a number < t that is coprime to t.
 def findE(t, log = False):
+    e = 2
     while RSA_Maths.euclid(t, e) != 1:
         if log:
             print("Randomising e...")
-        e = random.randint(2, t - 1)
+        e = secrets.randbelow(t)
     if log:
         print("e: {}".format(e))
     return e
@@ -16,14 +17,25 @@ def findE(t, log = False):
 # b is the number of bits desired for the prime factors.
 def chooseKeys(b, log = False):
     # Rather than find every prime with b bits, choose from two random slices of the search space.
-    p, q = 0, 0
-    for i in [p, q]:
-        lo, hi = secrets.randbits(b), secrets.randbits(b)
-        if lo > hi:
-            lo, hi = hi, lo
-        i = secrets.choice(RSA_Maths.primes(hi, lo))
-        if log:
-            print("{}: {}".format("p" if i == p else "q", hex(i))
+    limit = 1 << b
+    # To make optimising the prime calculation easier, p is always < q.
+    pLo = secrets.randbits(b)
+    pHi = pLo + secrets.randbelow(limit - pLo)
+    qLo = pHi + secrets.randbelow(limit - pHi)
+    qHi = qLo + secrets.randbelow(limit - qLo)
+    # The lower primes aren't considered but still need calculating to find the higher ones.
+    primes = Primes.findPrimes(pLo)
+    skip = len(primes)
+    primes = Primes.findPrimes(pHi, primes)
+    p = secrets.choice(primes[skip:])
+    if log:
+        print("p: " + hex(p))
+    primes = Primes.findPrimes(qLo, primes)
+    skip - len(primes)
+    primes = Primes.findPrimes(qHi, primes)
+    q = secrets.choice(primes[skip:])
+    if log:
+        print("q: " + hex(q))
     n = p * q
     if log:
         print("n: " + hex(n))
@@ -40,7 +52,7 @@ def chooseKeys(b, log = False):
 def encrypt(txt, e, n):
     print("Plain text: " + txt)
     print("Encoding...")
-    txt = txt.encode('utf-8').hex()()
+    txt = txt.encode('utf-8').hex()
     print("Plain hex: " + txt)
     print("Encrypting...")
     txt = hex(pow(int(txt, 16), e, n))
